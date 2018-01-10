@@ -31,7 +31,7 @@ class TableViewController: UITableViewController {
         URL(string: "https://thecatsite.com/attachments/06-japan-cat-snow-jpg.200900/")!
     ]
     
-    private lazy var dataPrefetcher = DataFetcher(requestForIndexPath: { URLRequest(url: self.catURLs[$0.row]) }) 
+    private lazy var dataPrefetcher = DataPrefetcher(requestForIndexPath: { URLRequest(url: self.catURLs[$0.row]) }) 
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,7 +44,7 @@ class TableViewController: UITableViewController {
 extension TableViewController {
     
     override func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        tableView.prefetchDataSource?.tableView?(tableView, cancelPrefetchingForRowsAt: [indexPath])
+        dataPrefetcher.cancel([URLRequest(url: catURLs[indexPath.row])])
     }
     
 }
@@ -64,6 +64,7 @@ extension TableViewController {
         
         // Retrieve image data from cachedResponse.
         dataPrefetcher.request(catURLs[indexPath.row]) { data in
+            
             // Using CGImage to resize the image since it would not block the main thread like UIImage.
             guard let thumbnailCGImage = CGImage.makeThumbnail(data: data, maxPixelSize: 1024) else { return }
             DispatchQueue.main.async {
