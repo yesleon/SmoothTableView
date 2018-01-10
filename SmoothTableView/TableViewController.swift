@@ -10,6 +10,7 @@ import UIKit
 
 class TableViewController: UITableViewController {
 
+    /// URLs of large resolution images.
     private var catURLs: [URL] = [
         URL(string: "https://static.pexels.com/photos/104827/cat-pet-animal-domestic-104827.jpeg")!,
         URL(string: "https://www.bluecross.org.uk/sites/default/files/assets/images/124044lpr.jpg")!,
@@ -30,17 +31,16 @@ class TableViewController: UITableViewController {
 
 }
 
-extension TableViewController: URLSessionDelegate {
-    
-}
-
 // MARK: - UITableViewDataSourcePrefetching
 extension TableViewController: UITableViewDataSourcePrefetching {
     
     func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
         for indexPath in indexPaths {
+            
+            // Send request and save it if there is no cachedResponse already.
             let request = URLRequest(url: catURLs[indexPath.row])
-            if URLSession.shared.configuration.urlCache!.cachedResponse(for: request) == nil {
+            if URLCache.shared.cachedResponse(for: request) == nil {
+                // This would save the request to URLCache.shared.
                 URLSession.shared.dataTask(with: request).resume()
             }
         }
@@ -57,31 +57,45 @@ extension TableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        
+        // Cleanup the cell first or the old image would still be there before we update it asynchronously.
+        cell.imageView?.image = nil
+        
         let request = URLRequest(url: catURLs[indexPath.row])
+        
+        /// Handling retrieved data.
+        ///
+        /// - Parameter data: Retrieved data.
         func didGetData(_ data: Data) {
-            guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return }
-            let options = [
-                kCGImageSourceCreateThumbnailWithTransform : true,
-                kCGImageSourceCreateThumbnailFromImageAlways : true,
-                kCGImageSourceThumbnailMaxPixelSize : 1024
-            ] as CFDictionary
-            guard let scaledImageRef = CGImageSourceCreateThumbnailAtIndex(source, 0, options) else { return }
+            
+            // Using CGImage to resize the image since it would not block the main thread like UIImage.
+            guard let thumbnailCGImage = CGImage.makeThumbnail(data: data, maxPixelSize: 1024) else { return }
             DispatchQueue.main.async {
-                cell.imageView?.image = UIImage(cgImage: scaledImageRef)
+                cell.imageView?.alpha = 0
+                cell.imageView?.image = UIImage(cgImage: thumbnailCGImage)
+                UIView.animate(withDuration: 0.15) {
+                    cell.imageView?.alpha = 1
+                }
             }
         }
-        if let response = URLSession.shared.configuration.urlCache?.cachedResponse(for: request) {
+        
+        // Retrieve image data from cachedResponse.
+        if let response = URLCache.shared.cachedResponse(for: request) {
             DispatchQueue.global().async {
                 didGetData(response.data)
             }
+            
+        // Or send the request and save it if there is no cachedResponse.
         } else {
-            cell.imageView?.image = nil
             URLSession.shared.dataTask(with: request) { (data, response, _) in
                 guard let data = data, let response = response else { return }
-                URLSession.shared.configuration.urlCache?.storeCachedResponse(CachedURLResponse(response: response, data: data), for: request)
+                URLCache.shared.storeCachedResponse(CachedURLResponse(response: response, data: data), for: request)
                 didGetData(data)
             }.resume()
         }
+        
+        // Cell should be returned as soon as possible, so all the consuming tasks should be on background threads,
+        // except for UIKit tasks.
         return cell
     }
     
