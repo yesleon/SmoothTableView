@@ -21,29 +21,30 @@ class TableViewController: UITableViewController {
         URL(string: "https://metrouk2.files.wordpress.com/2017/10/523733805-e1508406361613.jpg?quality=80&strip=all")!,
         URL(string: "https://cdn-images-1.medium.com/max/1600/1*mONNI1lG9VuiqovpnYqicA.jpeg")!,
         URL(string: "https://fthmb.tqn.com/ch8UN_4axgisolBU1tzo_2UUrLs=/3466x2599/filters:fill(auto,1)/GettyImages-459759125-584b87dc3df78c491ed25012.jpg")!,
+        URL(string: "https://static.pexels.com/photos/54632/cat-animal-eyes-grey-54632.jpeg")!,
+        URL(string: "https://www.proplanveterinarydiets.com/media/2473/purina_ppvd_ppd_con_dsk_carousel_cat_om.jpg")!,
+        URL(string: "https://media1.britannica.com/eb-media/47/158247-050-70FEB8D4.jpg")!,
+        URL(string: "https://vignette.wikia.nocookie.net/animal-jam-clans-1/images/b/bd/Siamese-cat.jpg/revision/latest?cb=20161006015008")!,
+        URL(string: "https://cdn-images-1.medium.com/max/1600/1*6wMP9_oZ7HEa_Mjau8nBpQ.jpeg")!,
+        URL(string: "https://fthmb.tqn.com/UysbMNXu5oQb54kHjOj6Kq-WIBs=/2121x1414/filters:fill(auto,1)/Calicocat-GettyImages-638741138-5931a1125f9b589eb48ff29d.jpg")!,
+        URL(string: "https://peopledotcom.files.wordpress.com/2017/12/smush-the-cat-1.jpg")!,
+        URL(string: "https://thecatsite.com/attachments/06-japan-cat-snow-jpg.200900/")!
     ]
+    
+    private lazy var dataPrefetcher = DataFetcher(requestForIndexPath: { URLRequest(url: self.catURLs[$0.row]) }) 
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.prefetchDataSource = self
+        tableView.prefetchDataSource = dataPrefetcher
         tableView.rowHeight = 500
     }
 
 }
 
-// MARK: - UITableViewDataSourcePrefetching
-extension TableViewController: UITableViewDataSourcePrefetching {
+extension TableViewController {
     
-    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
-        for indexPath in indexPaths {
-            
-            // Send request and save it if there is no cachedResponse already.
-            let request = URLRequest(url: catURLs[indexPath.row])
-            if URLCache.shared.cachedResponse(for: request) == nil {
-                // This would save the request to URLCache.shared.
-                URLSession.shared.dataTask(with: request).resume()
-            }
-        }
+    override func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        tableView.prefetchDataSource?.tableView?(tableView, cancelPrefetchingForRowsAt: [indexPath])
     }
     
 }
@@ -61,37 +62,20 @@ extension TableViewController {
         // Cleanup the cell first or the old image would still be there before we update it asynchronously.
         cell.imageView?.image = nil
         
-        let request = URLRequest(url: catURLs[indexPath.row])
-        
-        /// Handling retrieved data.
-        ///
-        /// - Parameter data: Retrieved data.
-        func didGetData(_ data: Data) {
-            
+        // Retrieve image data from cachedResponse.
+        dataPrefetcher.request(catURLs[indexPath.row]) { data in
             // Using CGImage to resize the image since it would not block the main thread like UIImage.
             guard let thumbnailCGImage = CGImage.makeThumbnail(data: data, maxPixelSize: 1024) else { return }
             DispatchQueue.main.async {
+                
+                // Check if the cell has not been reused yet.
+                guard indexPath == tableView.indexPath(for: cell) else { return }
                 cell.imageView?.alpha = 0
                 cell.imageView?.image = UIImage(cgImage: thumbnailCGImage)
                 UIView.animate(withDuration: 0.15) {
                     cell.imageView?.alpha = 1
                 }
             }
-        }
-        
-        // Retrieve image data from cachedResponse.
-        if let response = URLCache.shared.cachedResponse(for: request) {
-            DispatchQueue.global().async {
-                didGetData(response.data)
-            }
-            
-        // Or send the request and save it if there is no cachedResponse.
-        } else {
-            URLSession.shared.dataTask(with: request) { (data, response, _) in
-                guard let data = data, let response = response else { return }
-                URLCache.shared.storeCachedResponse(CachedURLResponse(response: response, data: data), for: request)
-                didGetData(data)
-            }.resume()
         }
         
         // Cell should be returned as soon as possible, so all the consuming tasks should be on background threads,
