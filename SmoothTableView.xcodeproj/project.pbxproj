@@ -13,6 +13,7 @@
 		7135DD3B200690C100A6D0F6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7135DD39200690C100A6D0F6 /* LaunchScreen.storyboard */; };
 		7135DD43200690E500A6D0F6 /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7135DD42200690E500A6D0F6 /* TableViewController.swift */; };
 		7135DD45200692C200A6D0F6 /* TableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7135DD44200692C200A6D0F6 /* TableViewCell.swift */; };
+		7135DD4B2006AAE700A6D0F6 /* CGImage+thumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7135DD4A2006AAE700A6D0F6 /* CGImage+thumbnail.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		7135DD3C200690C100A6D0F6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7135DD42200690E500A6D0F6 /* TableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
 		7135DD44200692C200A6D0F6 /* TableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewCell.swift; sourceTree = "<group>"; };
+		7135DD4A2006AAE700A6D0F6 /* CGImage+thumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGImage+thumbnail.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 			children = (
 				7135DD30200690C100A6D0F6 /* AppDelegate.swift */,
 				7135DD42200690E500A6D0F6 /* TableViewController.swift */,
+				7135DD4A2006AAE700A6D0F6 /* CGImage+thumbnail.swift */,
 				7135DD34200690C100A6D0F6 /* Main.storyboard */,
 				7135DD44200692C200A6D0F6 /* TableViewCell.swift */,
 				7135DD37200690C100A6D0F6 /* Assets.xcassets */,
@@ -141,6 +144,7 @@
 			files = (
 				7135DD45200692C200A6D0F6 /* TableViewCell.swift in Sources */,
 				7135DD31200690C100A6D0F6 /* AppDelegate.swift in Sources */,
+				7135DD4B2006AAE700A6D0F6 /* CGImage+thumbnail.swift in Sources */,
 				7135DD43200690E500A6D0F6 /* TableViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
